@@ -2,7 +2,7 @@
 
 A Foundry VTT module that turns every result of the 2014 and 2024 Wild Magic Surge tables into something you can apply in one click.
 
-**Which table?** Set *Configure Settings > Wild Surge Effects > Surge table* to 2014 or 2024. On *Auto*, it uses a world roll table named "Wild Magic Surge" (25 rows = 2024, 50 rows = 2014), then the last surge table drawn in chat, then the dnd5e rules version. The 2024 sub-rolls (d4 creature, d8 oddity, d10 random spell, d6 restoration) are rolled and applied for you.
+**Which table?** The panel has a *Surge table* dropdown (2014 / 2024) that any player can change for themselves, also under *Configure Settings > Wild Surge Effects > My surge table*. The GM sets the default for everyone with *Surge table*; on *Auto* it looks at the world roll table named exactly `Wild Magic Surge` (25 rows = 2024, 50 rows = 2014), otherwise the dnd5e rules version. The 2024 sub-rolls (d4 creature, d8 oddity, d10 random spell, d6 restoration) are rolled and applied for you.
 
 
 - **Lasting results** become real Active Effects (status effects) with durations and mechanical changes. They are normal effects on the actor, so they show on the character sheet under **Effects > Temporary Effects**, where you can toggle or delete them like any other effect.
@@ -26,7 +26,7 @@ Requires Foundry VTT v12-v14 and dnd5e 4.0+ (written for Foundry 14 / dnd5e 6 da
 - **Character sheet:** click the **Wild Magic Surge** (hat) button in the sheet header to open the surge panel for that character. Roll d100, apply results, or switch lasting effects on/off. Active effects are listed under *Effects > Temporary Effects*.
 - **Token toolbar:** the same panel is under the hat-wizard button in the token controls (uses the selected token).
 - **Token HUD (optional):** off by default. Turn on *Show surge effects in the Token HUD* in module settings if you want icons there too.
-- **Roll table draws:** when a roll table whose name contains "Wild" or "Surge" is drawn (also when the *Wild Magic Surge 5e* module rolls it for you), the chat message gets an **Apply** button.
+- **Roll table draws:** when the roll table named exactly `Wild Magic Surge` is drawn (also when the *Wild Magic Surge 5e* module rolls it for you), the chat message gets an **Apply** button.
 - **Macro:** `game.modules.get("wild-surge-effects").api.applyByRoll(actor, 52)` or `.api.open()`.
 
 ## What is automated (2014 numbering shown; the 2024 table uses the same effects)

@@ -26,3 +26,5 @@ button.wse-apply { margin-top: 4px; }
 .wse-panel .wse-row.sub { padding-left: 20px; font-size: .92em; }
 .wse-panel .wse-row.sub .wse-r { opacity: .7; }
 .wse-panel h4 small { font-weight: normal; opacity: .7; }
+.wse-panel .wse-table { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; font-weight: bold; }
+.wse-panel .wse-table select { width: auto; flex: 0 0 auto; }
