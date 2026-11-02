@@ -1,15 +1,20 @@
-# Wild Surge Effects (dnd5e, 2014 table)
+# Wild Surge Effects (dnd5e, 2014 & 2024 tables)
 
-A Foundry VTT module that turns every result of the 2014 (PHB) Wild Magic Surge table into something you can apply in one click:
+A Foundry VTT module that turns every result of the 2014 and 2024 Wild Magic Surge tables into something you can apply in one click.
 
-- **36 lasting results** become real Active Effects (status effects) with durations and mechanical changes. Toggle them on/off from the token HUD or the Wild Surge panel.
-- **14 instant results** (Fireball on self, regain 2d10 HP, regain a spell slot, regain sorcery points, lightning strike...) are resolved directly: rolls are made, HP/slots/sorcery points are restored, and the spell is linked in chat.
+**Which table?** Set *Configure Settings > Wild Surge Effects > Surge table* to 2014 or 2024. On *Auto*, it uses a world roll table named "Wild Magic Surge" (25 rows = 2024, 50 rows = 2014), then the last surge table drawn in chat, then the dnd5e rules version. The 2024 sub-rolls (d4 creature, d8 oddity, d10 random spell, d6 restoration) are rolled and applied for you.
 
-Requires Foundry VTT v12 or v13 and dnd5e 4.0+.
+
+- **Lasting results** become real Active Effects (status effects) with durations and mechanical changes. They are normal effects on the actor, so they show on the character sheet under **Effects > Temporary Effects**, where you can toggle or delete them like any other effect.
+- **Instant results** (Fireball on self, regain 2d10 HP, regain a spell slot, regain sorcery points, lightning strike...) are resolved directly: rolls are made, HP/slots/sorcery points are restored, and the spell is linked in chat.
+
+Requires Foundry VTT v12-v14 and dnd5e 4.0+ (written for Foundry 14 / dnd5e 6 data formats, with fallbacks for older versions).
 
 ## Install
 
-1. Unzip `wild-surge-effects.zip` into your Foundry user data folder so you get `Data/modules/wild-surge-effects/module.json`.
+1. **Easiest:** in Foundry, Install Module and paste the manifest URL `https://github.com/GuzekAlan/wild-magic-surge-effects/releases/latest/download/module.json`.
+
+   **Manual:** unzip `module.zip` into your Foundry user data folder so you get `Data/modules/wild-surge-effects/module.json`.
    - Windows: `%localappdata%/FoundryVTT/Data/modules/`
    - macOS: `~/Library/Application Support/FoundryVTT/Data/modules/`
    - Linux: `~/.local/share/FoundryVTT/Data/modules/`
@@ -18,12 +23,13 @@ Requires Foundry VTT v12 or v13 and dnd5e 4.0+.
 
 ## Use
 
-- **Panel:** select your token, then click the hat-wizard button in the token controls (left toolbar). The panel lists all 50 results with On/Off toggles for lasting ones and *Resolve* for instant ones. **Roll d100 & apply** rolls the surge and applies the result.
-- **Token HUD:** right-click your token. Every lasting surge appears as a numbered status icon (the number is the low end of its d100 range, e.g. `51` = 51-52 Spectral Shield).
+- **Character sheet:** click the **Wild Magic Surge** (hat) button in the sheet header to open the surge panel for that character. Roll d100, apply results, or switch lasting effects on/off. Active effects are listed under *Effects > Temporary Effects*.
+- **Token toolbar:** the same panel is under the hat-wizard button in the token controls (uses the selected token).
+- **Token HUD (optional):** off by default. Turn on *Show surge effects in the Token HUD* in module settings if you want icons there too.
 - **Roll table draws:** when a roll table whose name contains "Wild" or "Surge" is drawn (also when the *Wild Magic Surge 5e* module rolls it for you), the chat message gets an **Apply** button.
 - **Macro:** `game.modules.get("wild-surge-effects").api.applyByRoll(actor, 52)` or `.api.open()`.
 
-## What is automated
+## What is automated (2014 numbering shown; the 2024 table uses the same effects)
 
 | Result | Automation |
 |---|---|
@@ -56,5 +62,10 @@ Expired surge effects are removed automatically by the GM's client when game tim
 ## Notes
 
 - Effects of "until the start/end of your next turn" only auto-expire in combat; outside combat remove them manually.
-- The chat Apply button assumes the table uses the 2014 d100 numbering.
 - Descriptions are short paraphrases; check the Player's Handbook for the exact wording.
+
+## Releasing a new version
+
+1. Bump `version` in `module.json` and commit to `main`.
+2. Push a tag: `git tag v1.2.1 && git push origin v1.2.1`.
+3. The *Release module* workflow stamps the version and URLs into `module.json`, builds `module.zip`, and creates the GitHub release with both attached. Foundry then offers the update.

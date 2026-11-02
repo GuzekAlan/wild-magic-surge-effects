@@ -22,3 +22,7 @@
 .wse-card .wse-mech { font-style: italic; }
 .wse-card .wse-note { font-weight: bold; }
 button.wse-apply { margin-top: 4px; }
+.wse-panel .wse-row.group { background: rgba(140, 80, 220, .12); margin-top: 4px; }
+.wse-panel .wse-row.sub { padding-left: 20px; font-size: .92em; }
+.wse-panel .wse-row.sub .wse-r { opacity: .7; }
+.wse-panel h4 small { font-weight: normal; opacity: .7; }

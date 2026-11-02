@@ -1,21 +1,53 @@
-import { SURGES, findSurge, rangeLabel, heal } from "./surges.js";
+import { EFFECTS, TABLES, findRow, rangeLabel, heal } from "./surges.js";
 
 const MOD = "wild-surge-effects";
-const statusId = s => `wms-${s.key}`;
-const staticId = s => `wmsurge${String(s.min).padStart(3, "0")}`.padEnd(16, "0");
-const iconPath = s => `modules/${MOD}/icons/surge-${String(s.min).padStart(3, "0")}.svg`;
-const surgeByKey = key => SURGES.find(s => s.key === key);
-const surgeOfEffect = effect => surgeByKey(effect.getFlag?.(MOD, "key") ?? effect.flags?.[MOD]?.key);
+const statusId = e => `wms-${e.key}`;
+const iconPath = e => `modules/${MOD}/icons/${e.key}.svg`;
+/* Foundry v14 stores durations as {value, units, expiry} and changes as system.changes with a string type. */
+const isV14 = () => (game.release?.generation ?? 13) >= 14;
+const CHANGE_TYPES = { 1: "multiply", 2: "add", 3: "downgrade", 4: "upgrade", 5: "override" };
+
+function toDuration(d = {}) {
+  if (!isV14()) return { ...d };
+  if (d.seconds) {
+    for (const [units, n] of [["days", 86400], ["hours", 3600], ["minutes", 60]]) {
+      if (d.seconds % n === 0) return { value: d.seconds / n, units, expiry: "turnStart" };
+    }
+    return { value: d.seconds, units: "seconds", expiry: "turnStart" };
+  }
+  // rounds only = "until the start of your next turn"; rounds + turns = "until the end of your next turn"
+  if (d.rounds) return { value: d.rounds, units: "rounds", expiry: d.turns ? "turnEnd" : "turnStart" };
+  return {};
+}
+
+function toChanges(changes = []) {
+  if (!isV14()) return changes;
+  return changes.map(c => ({ key: c.key, type: CHANGE_TYPES[c.mode] ?? "add", value: String(c.value) }));
+}
+
+function existingChanges(effect) {
+  return (isV14() ? effect._source.system?.changes : effect._source.changes) ?? [];
+}
+
+const effectOf = ae => EFFECTS[ae.getFlag?.(MOD, "key") ?? ae.flags?.[MOD]?.key];
 
 /* -------------------------------------------- */
 /*  Settings & status registration               */
 /* -------------------------------------------- */
 
 Hooks.once("init", () => {
+  game.settings.register(MOD, "table", {
+    name: "Surge table",
+    hint: "Which Wild Magic Surge table to use. Auto checks a world roll table named 'Wild Magic Surge' (25 rows = 2024, 50 rows = 2014), then the last table drawn in chat, then the dnd5e rules version.",
+    scope: "world", config: true, type: String, default: "auto",
+    choices: { auto: "Auto-detect", "2014": "2014 (Player's Handbook 2014)", "2024": "2024 (Player's Handbook 2024)" },
+    onChange: () => refreshPanel()
+  });
+  game.settings.register(MOD, "lastEdition", { scope: "world", config: false, type: String, default: "" });
   game.settings.register(MOD, "showInHud", {
     name: "Show surge effects in the Token HUD",
-    hint: "Adds every lasting surge result as a toggleable status icon in the token HUD. They are always available from the Wild Surge panel.",
-    scope: "world", config: true, type: Boolean, default: true, requiresReload: true
+    hint: "Also list every lasting surge effect as a status icon in the token HUD. Off by default: use the Wild Surge button on the character sheet (or the token toolbar) and manage active effects under the sheet's Effects tab.",
+    scope: "world", config: true, type: Boolean, default: false, requiresReload: true
   });
   game.settings.register(MOD, "autoExpire", {
     name: "Remove surge effects when they expire",
@@ -31,64 +63,130 @@ Hooks.once("init", () => {
     name: "Post a chat card when a surge is applied",
     scope: "world", config: true, type: Boolean, default: true
   });
+
+  if (game.release.generation >= 13) {
+    Hooks.on("renderChatMessageHTML", (message, html) => injectChatButton(message, html));
+  } else {
+    Hooks.on("renderChatMessage", (message, html) => injectChatButton(message, html[0] ?? html));
+  }
 });
 
+/**
+ * Active Effect data for a lasting surge. These are ordinary (non-condition) effects, so the
+ * dnd5e character sheet lists them under Effects > Temporary Effects (or Passive Effects when
+ * they have no duration), where they can be toggled on/off or deleted.
+ */
+function effectData(e) {
+  const changes = toChanges(e.changes ? e.changes() : []);
+  return {
+    name: `Surge: ${e.name}`,
+    img: iconPath(e),
+    description: `<p><strong>Wild Magic Surge.</strong> ${e.text}</p><p><em>${e.mechanics}</em></p>`,
+    statuses: [statusId(e), ...(e.statuses ?? [])],
+    ...(isV14() ? { system: { changes } } : { changes }),
+    duration: toDuration(e.duration),
+    flags: { [MOD]: { key: e.key, ...(e.flags ?? {}) } }
+  };
+}
+
 Hooks.once("setup", () => {
-  const hud = game.settings.get(MOD, "showInHud") ? { actorTypes: ["character", "npc"] } : false;
-  for (const s of SURGES) {
-    if (s.kind !== "lasting") continue;
-    CONFIG.statusEffects.push({
-      id: statusId(s),
-      _id: staticId(s),
-      name: `Surge: ${s.name}`,
-      img: iconPath(s),
-      description: `<p><strong>Wild Magic Surge ${rangeLabel(s)}.</strong> ${s.text}</p><p><em>${s.mechanics}</em></p>`,
-      statuses: [...(s.statuses ?? [])],
-      changes: s.changes ? s.changes() : [],
-      duration: { ...(s.duration ?? {}) },
-      flags: { [MOD]: { key: s.key, ...(s.flags ?? {}) } },
-      hud
-    });
+  // Optional token HUD entries. No static _id, so dnd5e treats them as normal effects, not conditions.
+  if (!game.settings.get(MOD, "showInHud")) return;
+  for (const e of Object.values(EFFECTS)) {
+    if (e.kind !== "lasting") continue;
+    const { statuses, ...data } = effectData(e);
+    const status = { id: statusId(e), ...data, hud: { actorTypes: ["character", "npc"] } };
+    if (Array.isArray(CONFIG.statusEffects)) CONFIG.statusEffects.push(status);
+    else CONFIG.statusEffects[status.id] = status;
   }
 });
 
 Hooks.once("ready", () => {
-  const mod = game.modules.get(MOD);
-  mod.api = { open: openPanel, applyByRoll, apply: applySurge, surges: SURGES };
+  migrateConditionEffects();
+  game.modules.get(MOD).api = { open: openPanel, applyByRoll, applyEffect: applyEffect, edition, effects: EFFECTS, tables: TABLES };
 });
+
+/**
+ * Versions 1.0-1.1 created surge effects through the token HUD with fixed ids, which dnd5e 6 turns
+ * into hidden "condition" effects. Recreate them as normal effects so they show on the character sheet.
+ */
+async function migrateConditionEffects() {
+  if (!isActiveGM()) return;
+  for (const actor of trackedActors()) {
+    const old = actor.effects.filter(ae => effectOf(ae) && (ae.type === "condition" || /^wmsurge/.test(ae.id)));
+    if (!old.length) continue;
+    const data = old.map(ae => {
+      const d = ae.toObject();
+      delete d._id;
+      delete d.type;
+      if (d.system) delete d.system.type;
+      return d;
+    });
+    try {
+      await actor.deleteEmbeddedDocuments("ActiveEffect", old.map(ae => ae.id));
+      await actor.createEmbeddedDocuments("ActiveEffect", data, { [MOD]: { migrated: true } });
+    } catch (err) {
+      console.warn(`${MOD} | could not migrate surge effects on ${actor.name}`, err);
+    }
+  }
+}
+
+/** The surge table edition in use: "2014" or "2024". */
+function edition() {
+  const set = game.settings.get(MOD, "table");
+  if (set === "2014" || set === "2024") return set;
+  const table = game.tables?.find(t => /wild\s*magic\s*surge/i.test(t.name));
+  const fromTable = editionOfTable(table);
+  if (fromTable) return fromTable;
+  const last = game.settings.get(MOD, "lastEdition");
+  if (last) return last;
+  try {
+    return game.settings.get("dnd5e", "rulesVersion") === "modern" ? "2024" : "2014";
+  } catch {
+    return "2014";
+  }
+}
+
+function editionOfTable(table) {
+  const n = table?.results?.size;
+  if (n === 25) return "2024";
+  if (n === 50) return "2014";
+  return null;
+}
 
 /* -------------------------------------------- */
 /*  Effect lifecycle                             */
 /* -------------------------------------------- */
 
-Hooks.on("preCreateActiveEffect", (effect, data, options, userId) => {
-  const s = surgeOfEffect(effect);
-  if (!s) return;
+Hooks.on("preCreateActiveEffect", (effect, data, options) => {
+  const e = effectOf(effect);
+  if (!e || options?.[MOD]?.migrated) return;
   const updates = {};
+  updates.statuses = [...new Set([...(effect._source.statuses ?? []), statusId(e), ...(e.statuses ?? [])])];
   const combat = game.combat?.started ? game.combat : null;
-  updates["duration.startTime"] = game.time.worldTime;
-  if (combat) {
+  if (!isV14()) updates["duration.startTime"] = game.time.worldTime;
+  if (combat && !isV14()) {
     updates["duration.combat"] = combat.id;
     updates["duration.startRound"] = combat.round;
     updates["duration.startTurn"] = combat.turn ?? 0;
   }
-  if (s.prepare) {
-    const p = s.prepare(effect.parent) ?? {};
+  if (e.prepare) {
+    const p = e.prepare(effect.parent) ?? {};
     if (p.name) updates.name = `Surge: ${p.name}`;
-    if (p.duration) Object.assign(updates, Object.fromEntries(Object.entries(p.duration).map(([k, v]) => [`duration.${k}`, v])));
-    if (p.changes) updates.changes = [...(effect._source.changes ?? []), ...p.changes];
+    if (p.duration) for (const [k, v] of Object.entries(toDuration(p.duration))) updates[`duration.${k}`] = v;
+    if (p.changes) updates[isV14() ? "system.changes" : "changes"] = [...existingChanges(effect), ...toChanges(p.changes)];
     if (p.note) updates[`flags.${MOD}.note`] = p.note;
   }
   effect.updateSource(updates);
 });
 
 Hooks.on("createActiveEffect", async (effect, options, userId) => {
-  if (userId !== game.user.id) return;
-  const s = surgeOfEffect(effect);
-  if (!s) return;
+  if (userId !== game.user.id || options?.[MOD]?.migrated) return;
+  const e = effectOf(effect);
+  if (!e) return;
   const actor = effect.parent;
-  if (s.flags?.light && actor) await applyLight(effect, actor, s.flags.light);
-  if (game.settings.get(MOD, "chatCards")) await surgeCard(actor, s, effect.getFlag(MOD, "note"), effect.name);
+  if (e.flags?.light && actor) await applyLight(effect, actor, e.flags.light);
+  if (game.settings.get(MOD, "chatCards")) await surgeCard(actor, e, effect.getFlag(MOD, "note"), effect.name);
   refreshPanel();
 });
 
@@ -96,7 +194,7 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
   refreshPanel();
   if (userId !== game.user.id) return;
   const prev = effect.getFlag(MOD, "prevLight");
-  if (prev) await restoreLight(effect.parent, prev);
+  if (prev) await restoreLight(prev);
 });
 
 Hooks.on("updateActiveEffect", () => refreshPanel());
@@ -113,7 +211,7 @@ async function applyLight(effect, actor, light) {
   if (Object.keys(prev).length) await effect.setFlag(MOD, "prevLight", prev);
 }
 
-async function restoreLight(actor, prev) {
+async function restoreLight(prev) {
   for (const [tokenId, { sceneId, light }] of Object.entries(prev)) {
     const token = game.scenes.get(sceneId)?.tokens.get(tokenId);
     if (token?.isOwner) await token.update({ light });
@@ -127,6 +225,10 @@ async function restoreLight(actor, prev) {
 const isActiveGM = () => game.users.activeGM?.isSelf ?? game.user.isGM;
 
 function isExpired(effect) {
+  if (isV14()) {
+    effect.updateDuration?.();
+    return !!effect.duration?.expired;
+  }
   const d = effect._source.duration ?? {};
   if (d.seconds) return game.time.worldTime >= (d.startTime ?? 0) + d.seconds;
   if (d.rounds || d.turns) {
@@ -149,8 +251,13 @@ function trackedActors() {
 async function expireEffects() {
   if (!isActiveGM() || !game.settings.get(MOD, "autoExpire")) return;
   for (const actor of trackedActors()) {
-    const ids = actor.effects.filter(e => surgeOfEffect(e) && isExpired(e)).map(e => e.id);
-    if (ids.length) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
+    const ids = actor.effects.filter(ae => effectOf(ae) && isExpired(ae)).map(ae => ae.id);
+    if (!ids.length) continue;
+    try {
+      await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
+    } catch (err) {
+      console.debug(`${MOD} | expired effects already removed`, err);
+    }
   }
 }
 
@@ -163,18 +270,17 @@ Hooks.on("updateCombat", async (combat, changed) => {
   if (!game.settings.get(MOD, "turnAutomation")) return;
   const actor = combat.combatant?.actor;
   if (!actor) return;
-  for (const effect of actor.effects) {
-    const s = surgeOfEffect(effect);
-    if (!s || effect.disabled) continue;
-    const flags = effect.flags[MOD] ?? {};
+  for (const ae of actor.effects) {
+    if (!effectOf(ae) || ae.disabled) continue;
+    const flags = ae.flags[MOD] ?? {};
     if (flags.regen) {
       const healed = await heal(actor, flags.regen);
       await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }),
-        content: `<p><strong>${effect.name}:</strong> regained ${healed} HP at the start of the turn.</p>` });
+        content: `<p><strong>${ae.name}:</strong> regained ${healed} HP at the start of the turn.</p>` });
     }
     if (flags.reminder) {
       await ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }),
-        content: `<p><strong>${effect.name}:</strong> ${flags.reminder}</p>` });
+        content: `<p><strong>${ae.name}:</strong> ${flags.reminder}</p>` });
     }
   }
 });
@@ -197,95 +303,119 @@ async function spellLink(name) {
   return `<em>${name}</em>`;
 }
 
-async function surgeCard(actor, s, extra, title) {
-  const spell = await spellLink(s.spell);
+async function surgeCard(actor, e, extra, title) {
+  const spell = await spellLink(e.spell);
   const content = `<div class="wse-card">
-    <header><img src="${iconPath(s)}" width="36" height="36"/><h3>${title ?? s.name}</h3></header>
-    <p class="wse-range">Wild Magic Surge ${rangeLabel(s)}</p>
-    <p>${s.text}</p>
+    <header><img src="${iconPath(e)}" width="36" height="36"/><h3>${title ?? e.name}</h3></header>
+    <p class="wse-range">Wild Magic Surge</p>
+    <p>${e.text}</p>
     ${spell ? `<p>Spell: ${spell}</p>` : ""}
-    <p class="wse-mech">${s.mechanics}</p>
+    <p class="wse-mech">${e.mechanics}</p>
     ${extra ? `<p class="wse-note">${extra}</p>` : ""}
   </div>`;
   return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content });
 }
 
-/** Apply (or toggle) a surge result on an actor. */
-async function applySurge(actor, surgeOrKey, { toggle = false } = {}) {
-  const s = typeof surgeOrKey === "string" ? surgeByKey(surgeOrKey) : surgeOrKey;
-  if (!s) return;
+/** Apply (or toggle) a single effect from the pool on an actor. */
+async function applyEffect(actor, keyOrEffect, { toggle = false } = {}) {
+  const e = typeof keyOrEffect === "string" ? EFFECTS[keyOrEffect] : keyOrEffect;
+  if (!e) return;
   if (!actor) return ui.notifications.warn("Select a token (or assign a character) first.");
 
-  if (s.kind === "instant") {
-    const result = s.run ? await s.run(actor) : null;
-    if (game.settings.get(MOD, "chatCards") || result) await surgeCard(actor, s, result);
+  if (e.kind === "instant") {
+    const result = e.run ? await e.run(actor) : null;
+    if (game.settings.get(MOD, "chatCards") || result) await surgeCard(actor, e, result);
     return;
   }
 
-  const recipients = [];
   const targets = [...game.user.targets].map(t => t.actor).filter(Boolean);
-  if (s.targets === "targets") recipients.push(...(targets.length ? targets : [actor]));
-  else if (s.targets === "self+targets") recipients.push(actor, ...targets.filter(a => a !== actor));
+  const recipients = [];
+  if (e.targets === "targets") recipients.push(...(targets.length ? targets : [actor]));
+  else if (e.targets === "self+targets") recipients.push(actor, ...targets.filter(a => a !== actor));
   else recipients.push(actor);
 
   for (const a of recipients) {
     if (!a.isOwner) {
-      ui.notifications.warn(`You don't have permission to modify ${a.name}. Ask the GM to apply ${s.name}.`);
+      ui.notifications.warn(`You don't have permission to modify ${a.name}. Ask the GM to apply ${e.name}.`);
       continue;
     }
-    const active = toggle ? undefined : true;
-    await a.toggleStatusEffect(statusId(s), { active });
+    const existing = a.effects.find(ae => ae.getFlag(MOD, "key") === e.key);
+    if (existing && toggle) await existing.delete();
+    else if (existing?.disabled) await existing.update({ disabled: false });
+    else if (!existing) await a.createEmbeddedDocuments("ActiveEffect", [effectData(e)]);
   }
 }
 
+/** Apply a table row: either a single effect, or a sub-roll ("Roll 1dX") that picks one. */
+async function applyRow(actor, row) {
+  if (!actor) return ui.notifications.warn("Select a token (or assign a character) first.");
+  if (row.key) return applyEffect(actor, row.key);
+  const roll = await new Roll(row.formula).evaluate();
+  const pick = row.options[roll.total - 1];
+  const keys = Array.isArray(pick) ? pick : [pick];
+  const names = keys.map(k => EFFECTS[k].name).join(", ");
+  await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }),
+    flavor: `Wild Surge ${rangeLabel(row)} ${row.name}: ${roll.total} → ${names}` });
+  for (const k of keys) await applyEffect(actor, k);
+}
+
 /** Apply the surge matching a d100 total (1-100). */
-async function applyByRoll(actor, total) {
-  const s = findSurge(total);
-  if (s) await applySurge(actor ?? selectedActor(), s);
-  return s;
+async function applyByRoll(actor, total, ed = edition()) {
+  const row = findRow(ed, total);
+  if (row) await applyRow(actor ?? selectedActor(), row);
+  return row;
 }
 
 async function rollAndApply(actor) {
   if (!actor) return ui.notifications.warn("Select a token (or assign a character) first.");
+  const ed = edition();
   const roll = await new Roll("1d100").evaluate();
-  const s = findSurge(roll.total);
-  await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: `Wild Magic Surge: ${rangeLabel(s)} ${s.name}` });
-  await applySurge(actor, s);
+  const row = findRow(ed, roll.total);
+  await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: `Wild Magic Surge (${ed}): ${rangeLabel(row)} ${rowName(row)}` });
+  await applyRow(actor, row);
 }
+
+const rowName = row => (row.key ? EFFECTS[row.key].name : row.name);
 
 /* -------------------------------------------- */
 /*  Chat button on Wild Magic table draws         */
 /* -------------------------------------------- */
 
-function injectChatButton(message, html) {
-  const tableId = message.getFlag?.("core", "RollTable");
-  if (!tableId || html.querySelector(".wse-apply")) return;
-  const table = game.tables.get(tableId);
-  const label = `${table?.name ?? ""} ${message.flavor ?? ""} ${message.content ?? ""}`;
-  if (!/wild|surge/i.test(label)) return;
+async function tableForMessage(message) {
+  const id = message.getFlag?.("core", "RollTable");
+  if (!id) return null;
+  const world = game.tables.get(id);
+  if (world) return world;
+  for (const pack of game.packs.filter(p => p.documentName === "RollTable")) {
+    if (pack.index.has(id)) return pack.getDocument(id);
+  }
+  return null;
+}
+
+async function injectChatButton(message, html) {
+  if (!message.getFlag?.("core", "RollTable") || html.querySelector(".wse-apply")) return;
   const total = message.rolls?.[0]?.total;
   if (!total) return;
-  const s = findSurge(total);
-  if (!s) return;
+  const table = await tableForMessage(message);
+  const label = `${table?.name ?? ""} ${message.flavor ?? ""} ${message.content ?? ""}`;
+  if (!/wild|surge/i.test(label)) return;
+
+  let ed = editionOfTable(table);
+  if (ed && game.user.isGM && game.settings.get(MOD, "lastEdition") !== ed) game.settings.set(MOD, "lastEdition", ed);
+  ed ??= edition();
+  const row = findRow(ed, total);
+  if (!row || html.querySelector(".wse-apply")) return;
+
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "wse-apply";
-  btn.innerHTML = `<i class="fas fa-hat-wizard"></i> Apply ${rangeLabel(s)} ${s.name}`;
+  btn.innerHTML = `<i class="fas fa-hat-wizard"></i> Apply ${rangeLabel(row)} ${rowName(row)}`;
   btn.addEventListener("click", ev => {
     ev.preventDefault();
-    const actor = selectedActor() ?? ChatMessage.getSpeakerActor(message.speaker);
-    applySurge(actor, s);
+    applyRow(selectedActor() ?? ChatMessage.getSpeakerActor(message.speaker), row);
   });
   (html.querySelector(".message-content") ?? html).append(btn);
 }
-
-Hooks.once("init", () => {
-  if (game.release.generation >= 13) {
-    Hooks.on("renderChatMessageHTML", (message, html) => injectChatButton(message, html));
-  } else {
-    Hooks.on("renderChatMessage", (message, html) => injectChatButton(message, html[0] ?? html));
-  }
-});
 
 /* -------------------------------------------- */
 /*  Scene control button                          */
@@ -312,10 +442,11 @@ class SurgePanel extends ApplicationV2 {
     classes: ["wse-panel"],
     tag: "div",
     window: { title: "Wild Magic Surge", icon: "fas fa-hat-wizard", resizable: true },
-    position: { width: 560, height: 680 },
+    position: { width: 580, height: 700 },
     actions: {
       toggle: SurgePanel.onToggle,
       resolve: SurgePanel.onResolve,
+      subroll: SurgePanel.onSubroll,
       roll: SurgePanel.onRoll
     }
   };
@@ -323,38 +454,53 @@ class SurgePanel extends ApplicationV2 {
   filter = "";
 
   async _renderHTML() {
-    const actor = selectedActor();
+    const actor = panelActor();
+    const ed = edition();
     const active = new Set();
-    for (const e of actor?.effects ?? []) { const s = surgeOfEffect(e); if (s) active.add(s.key); }
-    const row = s => {
-      const on = active.has(s.key);
-      const btn = s.kind === "lasting"
-        ? `<button type="button" data-action="toggle" data-key="${s.key}" class="${on ? "on" : ""}">${on ? "On" : "Off"}</button>`
-        : `<button type="button" data-action="resolve" data-key="${s.key}">Resolve</button>`;
-      const search = `${rangeLabel(s)} ${s.name} ${s.text}`.toLowerCase().replace(/"/g, "");
-      return `<li class="wse-row ${on ? "active" : ""}" data-search="${search}">
-        <span class="wse-r">${rangeLabel(s)}</span>
-        <img src="${iconPath(s)}" alt=""/>
-        <div class="wse-body"><strong>${s.name}</strong><span>${s.mechanics}</span></div>
-        ${btn}
+    for (const ae of actor?.effects ?? []) { const e = effectOf(ae); if (e && !ae.disabled) active.add(e.key); }
+
+    const button = e => {
+      if (e.kind === "instant") return `<button type="button" data-action="resolve" data-key="${e.key}">Resolve</button>`;
+      const on = active.has(e.key);
+      return `<button type="button" data-action="toggle" data-key="${e.key}" class="${on ? "on" : ""}">${on ? "On" : "Off"}</button>`;
+    };
+    const effectRow = (e, range, sub = false) => {
+      const search = `${range} ${e.name} ${e.text}`.toLowerCase().replace(/"/g, "");
+      return `<li class="wse-row ${sub ? "sub" : ""} ${active.has(e.key) ? "active" : ""}" data-search="${search}">
+        <span class="wse-r">${range}</span>
+        <img src="${iconPath(e)}" alt=""/>
+        <div class="wse-body"><strong>${e.name}</strong><span>${e.mechanics}</span></div>
+        ${button(e)}
       </li>`;
     };
-    const lasting = SURGES.filter(s => s.kind === "lasting").map(row).join("");
-    const instant = SURGES.filter(s => s.kind === "instant").map(row).join("");
+    const rows = TABLES[ed].map((row, i) => {
+      const range = rangeLabel(row);
+      if (row.key) return effectRow(EFFECTS[row.key], range);
+      const subs = row.options.map((opt, n) => (Array.isArray(opt)
+        ? `<li class="wse-row sub" data-search="${range} all"><span class="wse-r">${n + 1}</span><span></span><div class="wse-body"><strong>All of the d8 oddities</strong><span>Use the d8 list above.</span></div><span></span></li>`
+        : effectRow(EFFECTS[opt], String(n + 1), true))).join("");
+      const search = `${range} ${row.name} ${row.text}`.toLowerCase().replace(/"/g, "");
+      return `<li class="wse-row group" data-search="${search}">
+          <span class="wse-r">${range}</span><span></span>
+          <div class="wse-body"><strong>${row.name}</strong><span>${row.text}</span></div>
+          <button type="button" data-action="subroll" data-index="${i}">Roll ${row.formula.slice(1)}</button>
+        </li>${subs}`;
+    }).join("");
+
     return `<div class="wse-top">
         <div class="wse-actor">${actor ? `<img src="${actor.img}"/><span>${actor.name}</span>` : "<em>Select a token</em>"}</div>
         <button type="button" data-action="roll" ${actor ? "" : "disabled"}><i class="fas fa-dice-d20"></i> Roll d100 &amp; apply</button>
       </div>
       <input type="search" class="wse-filter" placeholder="Filter results..." value="${this.filter}"/>
-      <h4>Lasting effects (toggle on/off)</h4><ul class="wse-list">${lasting}</ul>
-      <h4>Instant results</h4><ul class="wse-list">${instant}</ul>`;
+      <h4>${ed} Wild Magic Surge table <small>(change in module settings)</small></h4>
+      <ul class="wse-list">${rows}</ul>`;
   }
 
   _replaceHTML(result, content) {
     content.innerHTML = result;
   }
 
-  _onRender(context, options) {
+  _onRender() {
     const input = this.element.querySelector(".wse-filter");
     const apply = () => {
       this.filter = input.value;
@@ -366,24 +512,61 @@ class SurgePanel extends ApplicationV2 {
   }
 
   static async onToggle(event, target) {
-    await applySurge(selectedActor(), target.dataset.key, { toggle: true });
+    await applyEffect(panelActor(), target.dataset.key, { toggle: true });
   }
 
   static async onResolve(event, target) {
-    await applySurge(selectedActor(), target.dataset.key);
+    await applyEffect(panelActor(), target.dataset.key);
+  }
+
+  static async onSubroll(event, target) {
+    await applyRow(panelActor(), TABLES[edition()][Number(target.dataset.index)]);
   }
 
   static async onRoll() {
-    await rollAndApply(selectedActor());
+    await rollAndApply(panelActor());
   }
 }
 
 let panel;
-function openPanel() {
+/** Open the surge panel, optionally pinned to a specific actor (e.g. from its character sheet). */
+function openPanel(actor = null) {
   panel ??= new SurgePanel();
+  panel.actor = actor;
   panel.render({ force: true });
   return panel;
 }
+
+function panelActor() {
+  const pinned = panel?.actor;
+  if (pinned && (pinned.isToken || game.actors.has(pinned.id))) return pinned;
+  return selectedActor();
+}
+
+/* -------------------------------------------- */
+/*  Character sheet header button                 */
+/* -------------------------------------------- */
+
+const isSurgeActor = actor => actor && ["character", "npc"].includes(actor.type) && actor.isOwner;
+
+// ApplicationV2 sheets (dnd5e 4.x+ on Foundry v13+)
+Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
+  const actor = app.document;
+  if (actor?.documentName !== "Actor" || !isSurgeActor(actor)) return;
+  if (controls.some(c => c.action === "wildSurge")) return;
+  controls.push({
+    action: "wildSurge", icon: "fas fa-hat-wizard", label: "Wild Magic Surge",
+    onClick: () => openPanel(actor), ownership: "OWNER"
+  });
+  app.options.actions ??= {};
+  app.options.actions.wildSurge ??= () => openPanel(actor);
+});
+
+// Application v1 sheets (Foundry v12)
+Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
+  if (!isSurgeActor(sheet.actor)) return;
+  buttons.unshift({ label: "Wild Surge", class: "wild-surge", icon: "fas fa-hat-wizard", onclick: () => openPanel(sheet.actor) });
+});
 
 let refreshTimer;
 function refreshPanel() {
