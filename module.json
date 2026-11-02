@@ -1,0 +1,22 @@
+{
+  "id": "wild-surge-effects",
+  "title": "Wild Surge Effects (5e, 2014 table)",
+  "description": "Adds a toggleable Active Effect for every result of the 2014 Wild Magic Surge table, with real mechanical changes and durations. Includes a surge panel, token HUD status icons, turn-start automation and auto-expiry.",
+  "version": "1.0.0",
+  "authors": [{ "name": "Alan" }],
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": { "minimum": "4.0.0" }
+      }
+    ]
+  },
+  "esmodules": ["scripts/main.js"],
+  "styles": ["styles/style.css"]
+}
