@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<defs><radialGradient id="g" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="hsl(91,85%,66%)"/><stop offset="1" stop-color="hsl(131,70%,24%)"/></radialGradient></defs>
+<rect x="2" y="2" width="60" height="60" rx="14" fill="url(#g)" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>
+<path d="M50 8 l2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2z" fill="#fff" opacity=".9"/>
+<text x="32" y="43" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="26" fill="#fff" stroke="#000" stroke-opacity=".35" stroke-width="1">EE</text>
+</svg>
