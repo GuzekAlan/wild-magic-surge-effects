@@ -38,12 +38,18 @@ const effectOf = ae => EFFECTS[ae.getFlag?.(MOD, "key") ?? ae.flags?.[MOD]?.key]
 Hooks.once("init", () => {
   game.settings.register(MOD, "table", {
     name: "Surge table",
-    hint: "Which Wild Magic Surge table to use. Auto checks a world roll table named 'Wild Magic Surge' (25 rows = 2024, 50 rows = 2014), then the last table drawn in chat, then the dnd5e rules version.",
+    hint: "Default table for everyone. Auto looks at the world roll table named exactly 'Wild Magic Surge' (25 rows = 2024, 50 rows = 2014), otherwise the dnd5e rules version. Players can override this for themselves.",
     scope: "world", config: true, type: String, default: "auto",
     choices: { auto: "Auto-detect", "2014": "2014 (Player's Handbook 2014)", "2024": "2024 (Player's Handbook 2024)" },
     onChange: () => refreshPanel()
   });
-  game.settings.register(MOD, "lastEdition", { scope: "world", config: false, type: String, default: "" });
+  game.settings.register(MOD, "myTable", {
+    name: "My surge table (this player only)",
+    hint: "Overrides the world's Surge table setting for you only, so players can switch without the GM. Also available as a dropdown in the Wild Magic Surge panel.",
+    scope: "client", config: true, type: String, default: "world",
+    choices: { world: "Use the world setting", "2014": "2014 (Player's Handbook 2014)", "2024": "2024 (Player's Handbook 2024)" },
+    onChange: () => refreshPanel()
+  });
   game.settings.register(MOD, "showInHud", {
     name: "Show surge effects in the Token HUD",
     hint: "Also list every lasting surge effect as a status icon in the token HUD. Off by default: use the Wild Surge button on the character sheet (or the token toolbar) and manage active effects under the sheet's Effects tab.",
@@ -132,14 +138,16 @@ async function migrateConditionEffects() {
 }
 
 /** The surge table edition in use: "2014" or "2024". */
+const SURGE_TABLE_NAME = "Wild Magic Surge";
+const isSurgeTable = table => table?.name?.trim().toLowerCase() === SURGE_TABLE_NAME.toLowerCase();
+
 function edition() {
+  const mine = game.settings.get(MOD, "myTable");
+  if (mine === "2014" || mine === "2024") return mine;
   const set = game.settings.get(MOD, "table");
   if (set === "2014" || set === "2024") return set;
-  const table = game.tables?.find(t => /wild\s*magic\s*surge/i.test(t.name));
-  const fromTable = editionOfTable(table);
+  const fromTable = editionOfTable(game.tables?.find(isSurgeTable));
   if (fromTable) return fromTable;
-  const last = game.settings.get(MOD, "lastEdition");
-  if (last) return last;
   try {
     return game.settings.get("dnd5e", "rulesVersion") === "modern" ? "2024" : "2014";
   } catch {
@@ -396,13 +404,13 @@ async function injectChatButton(message, html) {
   if (!message.getFlag?.("core", "RollTable") || html.querySelector(".wse-apply")) return;
   const total = message.rolls?.[0]?.total;
   if (!total) return;
+  // Only the table named exactly "Wild Magic Surge". If the table can't be looked up
+  // (e.g. it was deleted), fall back to the message mentioning that exact name.
   const table = await tableForMessage(message);
-  const label = `${table?.name ?? ""} ${message.flavor ?? ""} ${message.content ?? ""}`;
-  if (!/wild|surge/i.test(label)) return;
+  if (table ? !isSurgeTable(table) : !`${message.flavor ?? ""} ${message.content ?? ""}`.includes(SURGE_TABLE_NAME)) return;
 
-  let ed = editionOfTable(table);
-  if (ed && game.user.isGM && game.settings.get(MOD, "lastEdition") !== ed) game.settings.set(MOD, "lastEdition", ed);
-  ed ??= edition();
+  // Row numbers must match the table that was actually drawn.
+  const ed = editionOfTable(table) ?? edition();
   const row = findRow(ed, total);
   if (!row || html.querySelector(".wse-apply")) return;
 
@@ -492,7 +500,12 @@ class SurgePanel extends ApplicationV2 {
         <button type="button" data-action="roll" ${actor ? "" : "disabled"}><i class="fas fa-dice-d20"></i> Roll d100 &amp; apply</button>
       </div>
       <input type="search" class="wse-filter" placeholder="Filter results..." value="${this.filter}"/>
-      <h4>${ed} Wild Magic Surge table <small>(change in module settings)</small></h4>
+      <label class="wse-table">Surge table:
+        <select class="wse-edition">
+          <option value="2014" ${ed === "2014" ? "selected" : ""}>2014 (PHB 2014)</option>
+          <option value="2024" ${ed === "2024" ? "selected" : ""}>2024 (PHB 2024)</option>
+        </select>
+      </label>
       <ul class="wse-list">${rows}</ul>`;
   }
 
@@ -501,6 +514,9 @@ class SurgePanel extends ApplicationV2 {
   }
 
   _onRender() {
+    this.element.querySelector(".wse-edition")?.addEventListener("change", ev => {
+      game.settings.set(MOD, "myTable", ev.target.value); // client setting: works for players too
+    });
     const input = this.element.querySelector(".wse-filter");
     const apply = () => {
       this.filter = input.value;
