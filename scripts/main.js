@@ -162,15 +162,18 @@ const sameName = (table, name) => !!name && table?.name?.trim().toLowerCase() ==
 const wildTableName = () => game.settings.get(MOD, "wildTableName") || "Wild Magic Surge";
 const celestialTableName = () => game.settings.get(MOD, "celestialTableName") || "Celestial Surge";
 const celestialEnabled = () => game.settings.get(MOD, "celestialEnabled");
-const isSurgeTable = table => sameName(table, wildTableName());
-const isCelestialTable = table => celestialEnabled() && sameName(table, celestialTableName());
+/** Tables from this module's "Surge Tables" compendium carry a flag, so imported or renamed copies still count. */
+const tableFlag = table => table?.getFlag?.(MOD, "table") ?? table?.flags?.[MOD]?.table;
+const isSurgeTable = table => ["2014", "2024"].includes(tableFlag(table)) || sameName(table, wildTableName());
+const isCelestialTable = table => celestialEnabled() && (tableFlag(table) === "celestial" || sameName(table, celestialTableName()));
 
 function edition() {
   const mine = game.settings.get(MOD, "myTable");
   if (mine === "2014" || mine === "2024") return mine;
   const set = game.settings.get(MOD, "table");
   if (set === "2014" || set === "2024") return set;
-  const fromTable = editionOfTable(game.tables?.find(isSurgeTable));
+  const named = game.tables?.find(t => sameName(t, wildTableName()));
+  const fromTable = editionOfTable(named ?? game.tables?.find(isSurgeTable));
   if (fromTable) return fromTable;
   try {
     return game.settings.get("dnd5e", "rulesVersion") === "modern" ? "2024" : "2014";
@@ -180,6 +183,8 @@ function edition() {
 }
 
 function editionOfTable(table) {
+  const flag = tableFlag(table);
+  if (flag === "2014" || flag === "2024") return flag;
   const n = table?.results?.size;
   if (n === 25) return "2024";
   if (n === 50) return "2014";

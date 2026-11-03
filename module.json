@@ -2,10 +2,10 @@
   "id": "wild-surge-effects",
   "title": "Wild Surge Effects (5e, 2014 & 2024 tables + Celestial Surge)",
   "description": "Adds a toggleable Active Effect for every result of the 2014 and 2024 Wild Magic Surge tables (plus an optional homebrew Celestial Surge table), with real mechanical changes and durations. Effects appear under Temporary Effects on the character sheet. Includes a surge panel, turn-start automation and auto-expiry.",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "url": "https://github.com/GuzekAlan/wild-magic-surge-effects",
   "manifest": "https://github.com/GuzekAlan/wild-magic-surge-effects/releases/latest/download/module.json",
-  "download": "https://github.com/GuzekAlan/wild-magic-surge-effects/releases/download/v1.4.0/module.zip",
+  "download": "https://github.com/GuzekAlan/wild-magic-surge-effects/releases/download/v1.5.0/module.zip",
   "authors": [
     {
       "name": "Alan"
@@ -32,5 +32,18 @@
   "styles": [
     "styles/style.css"
   ],
-  "socket": true
+  "socket": true,
+  "packs": [
+    {
+      "name": "surge-tables",
+      "label": "Surge Tables",
+      "path": "packs/surge-tables",
+      "type": "RollTable",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ]
 }

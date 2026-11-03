@@ -59,6 +59,20 @@ Everything else with a duration (modron, unicorn, bubbles, shouting, mirror imag
 
 Expired surge effects are removed automatically by the GM's client when game time or combat turns pass their duration (can be turned off in module settings).
 
+## Surge Tables compendium
+
+The module ships a **Surge Tables** compendium with three roll tables:
+
+- **Wild Magic Surge 5E**: the 2014 table (d100, 50 rows)
+- **Wild Magic Surge 5.5E**: the 2024 table (d100, 25 rows)
+- **Celestial Surge**: the homebrew d20 table
+
+Result texts are short paraphrases. Each result's image matches its effect icon.
+
+**For the GM:** open the *Compendium Packs* sidebar, open *Surge Tables*, and drag a table into the *Rollable Tables* sidebar (or right-click → Import). Then give players ownership of the imported table (right-click → Ownership → Observer) so they can roll it.
+
+Each table carries a module flag, so the module recognises imported copies **even if you rename them**. Draws get the chat **Apply** button and use the right 2014/2024/Celestial numbering. Tables you made yourself still work by name (see the table name settings).
+
 ## Celestial Surge (optional, homebrew)
 
 A d20 table of divine surges. Turn it on with *Configure Settings > Wild Surge Effects > Enable Celestial Surge*. The roll table name defaults to `Celestial Surge` and can be changed in *Celestial Surge table name* (exact match, not case-sensitive).
@@ -100,4 +114,8 @@ A d20 table of divine surges. Turn it on with *Configure Settings > Wild Surge E
 
 1. Bump `version` in `module.json` and commit to `main`.
 2. Push a tag: `git tag v1.2.1 && git push origin v1.2.1`.
-3. The *Release module* workflow stamps the version and URLs into `module.json`, builds `module.zip`, and creates the GitHub release with both attached. Foundry then offers the update.
+3. The *Release module* workflow builds the compendium (`node tools/build-packs.mjs`), stamps the version and URLs into `module.json`, builds `module.zip`, and creates the GitHub release with both attached. Foundry then offers the update.
+
+### Rebuilding the compendium locally
+
+`npm install && npm run build:packs` regenerates `packs/_source/surge-tables/*.json` from `scripts/surges.js` and `scripts/celestial.js`, then compiles `packs/surge-tables` (LevelDB, not committed).
