@@ -27,8 +27,17 @@ jobs:
           mv module.tmp module.json
           cat module.json
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build compendium packs
+        run: |
+          npm install --no-audit --no-fund
+          node tools/build-packs.mjs
+
       - name: Build module.zip
-        run: zip -r module.zip module.json README.md scripts styles icons
+        run: zip -r module.zip module.json README.md scripts styles icons packs/surge-tables
 
       - name: Create release and attach files
         uses: softprops/action-gh-release@v2

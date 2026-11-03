@@ -1,0 +1,539 @@
+{
+  "_id": "NAH5gucx6b7c2Wh5",
+  "name": "Wild Magic Surge 5.5E",
+  "img": "icons/svg/d20-black.svg",
+  "description": "Wild Magic Surge table (2024 Player's Handbook numbering, paraphrased). Draws get an Apply button from the Wild Surge Effects module.",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "BlPufrYcqCoANUTD",
+      "type": "text",
+      "name": "Surge Every Turn",
+      "description": "For the next minute, roll on the surge table at the start of each of your turns (ignore this result on those rolls).",
+      "text": "<strong>Surge Every Turn.</strong> For the next minute, roll on the surge table at the start of each of your turns (ignore this result on those rolls).",
+      "img": "modules/wild-surge-effects/icons/surge-each-turn.svg",
+      "weight": 1,
+      "range": [
+        1,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "01-04",
+          "key": "surge-each-turn"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.BlPufrYcqCoANUTD"
+    },
+    {
+      "_id": "YcmTDisORRTvVvUZ",
+      "type": "text",
+      "name": "Friendly Creature",
+      "description": "A friendly creature controlled by the DM appears within 60 feet of you and disappears 1 minute later (d4: Modron Duodrone, Flumph, Modron Monodrone, Unicorn).",
+      "text": "<strong>Friendly Creature.</strong> A friendly creature controlled by the DM appears within 60 feet of you and disappears 1 minute later (d4: Modron Duodrone, Flumph, Modron Monodrone, Unicorn).",
+      "img": "modules/wild-surge-effects/icons/friendly-creature.svg",
+      "weight": 1,
+      "range": [
+        5,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "05-08",
+          "key": "friendly-creature"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.YcmTDisORRTvVvUZ"
+    },
+    {
+      "_id": "UHq8BfuKoh309Kqj",
+      "type": "text",
+      "name": "Regeneration",
+      "description": "For the next minute, you regain 5 hit points at the start of each of your turns.",
+      "text": "<strong>Regeneration.</strong> For the next minute, you regain 5 hit points at the start of each of your turns.",
+      "img": "modules/wild-surge-effects/icons/regeneration.svg",
+      "weight": 1,
+      "range": [
+        9,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "09-12",
+          "key": "regeneration"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.UHq8BfuKoh309Kqj"
+    },
+    {
+      "_id": "CpSNWNvHSzrQCAKO",
+      "type": "text",
+      "name": "Imposing Spell",
+      "description": "Creatures have disadvantage on saving throws against the next spell you cast in the next minute that involves a saving throw.",
+      "text": "<strong>Imposing Spell.</strong> Creatures have disadvantage on saving throws against the next spell you cast in the next minute that involves a saving throw.",
+      "img": "modules/wild-surge-effects/icons/save-disadvantage.svg",
+      "weight": 1,
+      "range": [
+        13,
+        16
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "13-16",
+          "key": "save-disadvantage"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.CpSNWNvHSzrQCAKO"
+    },
+    {
+      "_id": "9uo0c53NuTdgsLjk",
+      "type": "text",
+      "name": "Strange Effect (d8)",
+      "description": "Roll 1d8 for a 1-minute oddity: music, growth, feather beard, shouting, butterflies, third eye, pink bubbles, or blue skin.",
+      "text": "<strong>Strange Effect (d8).</strong> Roll 1d8 for a 1-minute oddity: music, growth, feather beard, shouting, butterflies, third eye, pink bubbles, or blue skin.",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        17,
+        20
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "17-20"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.9uo0c53NuTdgsLjk"
+    },
+    {
+      "_id": "8dmQurDKNYU7zHZE",
+      "type": "text",
+      "name": "Quickened Casting",
+      "description": "For the next minute, your spells with a casting time of an action have a casting time of a bonus action.",
+      "text": "<strong>Quickened Casting.</strong> For the next minute, your spells with a casting time of an action have a casting time of a bonus action.",
+      "img": "modules/wild-surge-effects/icons/quickened-casting.svg",
+      "weight": 1,
+      "range": [
+        21,
+        24
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "21-24",
+          "key": "quickened-casting"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.8dmQurDKNYU7zHZE"
+    },
+    {
+      "_id": "VhJyjnrn0X3yCoIi",
+      "type": "text",
+      "name": "Astral Plane",
+      "description": "You are transported to the Astral Plane until the end of your next turn, then return to your space (or the nearest unoccupied one).",
+      "text": "<strong>Astral Plane.</strong> You are transported to the Astral Plane until the end of your next turn, then return to your space (or the nearest unoccupied one).",
+      "img": "modules/wild-surge-effects/icons/astral.svg",
+      "weight": 1,
+      "range": [
+        25,
+        28
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "25-28",
+          "key": "astral"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.VhJyjnrn0X3yCoIi"
+    },
+    {
+      "_id": "meOurC2RGLkcANE6",
+      "type": "text",
+      "name": "Maximized Spell",
+      "description": "The next damaging spell you cast within the next minute deals maximum damage on every die.",
+      "text": "<strong>Maximized Spell.</strong> The next damaging spell you cast within the next minute deals maximum damage on every die.",
+      "img": "modules/wild-surge-effects/icons/maximize-damage.svg",
+      "weight": 1,
+      "range": [
+        29,
+        32
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "29-32",
+          "key": "maximize-damage"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.meOurC2RGLkcANE6"
+    },
+    {
+      "_id": "TZNBtDfr3uycP7UC",
+      "type": "text",
+      "name": "Resilience",
+      "description": "You have resistance to all damage for the next minute.",
+      "text": "<strong>Resilience.</strong> You have resistance to all damage for the next minute.",
+      "img": "modules/wild-surge-effects/icons/resist-all.svg",
+      "weight": 1,
+      "range": [
+        33,
+        36
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "33-36",
+          "key": "resist-all"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.TZNBtDfr3uycP7UC"
+    },
+    {
+      "_id": "og2ry7QsxmusurpW",
+      "type": "text",
+      "name": "Potted Plant",
+      "description": "You turn into a potted plant until the start of your next turn: incapacitated and vulnerable to all damage. At 0 HP the pot breaks and you revert.",
+      "text": "<strong>Potted Plant.</strong> You turn into a potted plant until the start of your next turn: incapacitated and vulnerable to all damage. At 0 HP the pot breaks and you revert.",
+      "img": "modules/wild-surge-effects/icons/potted-plant.svg",
+      "weight": 1,
+      "range": [
+        37,
+        40
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "37-40",
+          "key": "potted-plant"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.og2ry7QsxmusurpW"
+    },
+    {
+      "_id": "dfvpfJE5QlF6Mz2M",
+      "type": "text",
+      "name": "Blink Step",
+      "description": "For the next minute, you can teleport up to 20 feet as a bonus action on each of your turns.",
+      "text": "<strong>Blink Step.</strong> For the next minute, you can teleport up to 20 feet as a bonus action on each of your turns.",
+      "img": "modules/wild-surge-effects/icons/blink-step.svg",
+      "weight": 1,
+      "range": [
+        41,
+        44
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "41-44",
+          "key": "blink-step"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.dfvpfJE5QlF6Mz2M"
+    },
+    {
+      "_id": "H2qiQEEyU5l2kEHy",
+      "type": "text",
+      "name": "Group Invisibility",
+      "description": "You and up to three creatures you choose within 30 feet are invisible for 1 minute; it ends on a creature after it attacks, deals damage, or casts a spell.",
+      "text": "<strong>Group Invisibility.</strong> You and up to three creatures you choose within 30 feet are invisible for 1 minute; it ends on a creature after it attacks, deals damage, or casts a spell.",
+      "img": "modules/wild-surge-effects/icons/group-invisibility.svg",
+      "weight": 1,
+      "range": [
+        45,
+        48
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "45-48",
+          "key": "group-invisibility"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.H2qiQEEyU5l2kEHy"
+    },
+    {
+      "_id": "WLvPdJCtR3vh9E9g",
+      "type": "text",
+      "name": "Spectral Shield",
+      "description": "A spectral shield hovers near you for the next minute: +2 bonus to AC and immunity to magic missile.",
+      "text": "<strong>Spectral Shield.</strong> A spectral shield hovers near you for the next minute: +2 bonus to AC and immunity to magic missile.",
+      "img": "modules/wild-surge-effects/icons/spectral-shield.svg",
+      "weight": 1,
+      "range": [
+        49,
+        52
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "49-52",
+          "key": "spectral-shield"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.WLvPdJCtR3vh9E9g"
+    },
+    {
+      "_id": "cTc9Jc5XxqhE4t0m",
+      "type": "text",
+      "name": "Extra Action",
+      "description": "You can take one additional action (this turn).",
+      "text": "<strong>Extra Action.</strong> You can take one additional action (this turn).",
+      "img": "modules/wild-surge-effects/icons/extra-action.svg",
+      "weight": 1,
+      "range": [
+        53,
+        56
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "53-56",
+          "key": "extra-action"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.cTc9Jc5XxqhE4t0m"
+    },
+    {
+      "_id": "7RmEdOKtpFYHuIjT",
+      "type": "text",
+      "name": "Random Spell (d10)",
+      "description": "Roll 1d10 for a spell you cast (no concentration, full duration): Confusion, Fireball, Fog Cloud, Fly, Grease, Levitate, Magic Missile, Mirror Image, Polymorph, See Invisibility.",
+      "text": "<strong>Random Spell (d10).</strong> Roll 1d10 for a spell you cast (no concentration, full duration): Confusion, Fireball, Fog Cloud, Fly, Grease, Levitate, Magic Missile, Mirror Image, Polymorph, See Invisibility.",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        57,
+        60
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "57-60"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.7RmEdOKtpFYHuIjT"
+    },
+    {
+      "_id": "ghHNBSoP4xVEO6z9",
+      "type": "text",
+      "name": "Burning Touch",
+      "description": "For the next minute, flammable (nonmagical) objects you touch that nobody else is wearing or carrying burst into flame.",
+      "text": "<strong>Burning Touch.</strong> For the next minute, flammable (nonmagical) objects you touch that nobody else is wearing or carrying burst into flame.",
+      "img": "modules/wild-surge-effects/icons/fire-touch.svg",
+      "weight": 1,
+      "range": [
+        61,
+        64
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "61-64",
+          "key": "fire-touch"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.ghHNBSoP4xVEO6z9"
+    },
+    {
+      "_id": "dY0Eo38qBZ3m848i",
+      "type": "text",
+      "name": "Second Life",
+      "description": "If you die within the next hour, you revive as if by the reincarnate spell.",
+      "text": "<strong>Second Life.</strong> If you die within the next hour, you revive as if by the reincarnate spell.",
+      "img": "modules/wild-surge-effects/icons/reincarnate-hour.svg",
+      "weight": 1,
+      "range": [
+        65,
+        68
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "65-68",
+          "key": "reincarnate-hour"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.dY0Eo38qBZ3m848i"
+    },
+    {
+      "_id": "7ES9yWLEvRy5YNZR",
+      "type": "text",
+      "name": "Spooked",
+      "description": "You are frightened until the end of your next turn (the DM picks the source).",
+      "text": "<strong>Spooked.</strong> You are frightened until the end of your next turn (the DM picks the source).",
+      "img": "modules/wild-surge-effects/icons/frightened.svg",
+      "weight": 1,
+      "range": [
+        69,
+        72
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "69-72",
+          "key": "frightened"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.7ES9yWLEvRy5YNZR"
+    },
+    {
+      "_id": "ygQVIUY9v3pDx8HC",
+      "type": "text",
+      "name": "Random Teleport",
+      "description": "You teleport up to 60 feet to an unoccupied space you can see.",
+      "text": "<strong>Random Teleport.</strong> You teleport up to 60 feet to an unoccupied space you can see.",
+      "img": "modules/wild-surge-effects/icons/teleport-60.svg",
+      "weight": 1,
+      "range": [
+        73,
+        76
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "73-76",
+          "key": "teleport-60"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.ygQVIUY9v3pDx8HC"
+    },
+    {
+      "_id": "ua0S1rZ0heajaUD9",
+      "type": "text",
+      "name": "Surge Poison",
+      "description": "A random creature within 60 feet of you is poisoned for 1d4 hours.",
+      "text": "<strong>Surge Poison.</strong> A random creature within 60 feet of you is poisoned for 1d4 hours.",
+      "img": "modules/wild-surge-effects/icons/poison-random.svg",
+      "weight": 1,
+      "range": [
+        77,
+        80
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "77-80",
+          "key": "poison-random"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.ua0S1rZ0heajaUD9"
+    },
+    {
+      "_id": "Irk3t6IWN5WnpCvk",
+      "type": "text",
+      "name": "Radiant Glow",
+      "description": "You shed bright light in a 30-foot radius for the next minute. A creature that ends its turn within 5 feet of you is blinded until the end of its next turn.",
+      "text": "<strong>Radiant Glow.</strong> You shed bright light in a 30-foot radius for the next minute. A creature that ends its turn within 5 feet of you is blinded until the end of its next turn.",
+      "img": "modules/wild-surge-effects/icons/radiant-glow.svg",
+      "weight": 1,
+      "range": [
+        81,
+        84
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "81-84",
+          "key": "radiant-glow"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.Irk3t6IWN5WnpCvk"
+    },
+    {
+      "_id": "I6ZLuyul8ukOFCmk",
+      "type": "text",
+      "name": "Life Drain",
+      "description": "Creatures near you take 1d10 necrotic damage and you regain hit points equal to the total dealt (2014: every creature within 30 ft; 2024: up to three you choose).",
+      "text": "<strong>Life Drain.</strong> Creatures near you take 1d10 necrotic damage and you regain hit points equal to the total dealt (2014: every creature within 30 ft; 2024: up to three you choose).",
+      "img": "modules/wild-surge-effects/icons/life-drain.svg",
+      "weight": 1,
+      "range": [
+        85,
+        88
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "85-88",
+          "key": "life-drain"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.I6ZLuyul8ukOFCmk"
+    },
+    {
+      "_id": "kTo2GZQB2g4X0CCs",
+      "type": "text",
+      "name": "Lightning Strike",
+      "description": "Up to three creatures you choose within 30 feet of you take 4d10 lightning damage.",
+      "text": "<strong>Lightning Strike.</strong> Up to three creatures you choose within 30 feet of you take 4d10 lightning damage.",
+      "img": "modules/wild-surge-effects/icons/lightning.svg",
+      "weight": 1,
+      "range": [
+        89,
+        92
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "89-92",
+          "key": "lightning"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.kTo2GZQB2g4X0CCs"
+    },
+    {
+      "_id": "Bpd5fPiq4nqFNWs0",
+      "type": "text",
+      "name": "Piercing Vulnerability",
+      "description": "You and each creature within 30 feet of you are vulnerable to piercing damage for the next minute.",
+      "text": "<strong>Piercing Vulnerability.</strong> You and each creature within 30 feet of you are vulnerable to piercing damage for the next minute.",
+      "img": "modules/wild-surge-effects/icons/piercing-vulnerability.svg",
+      "weight": 1,
+      "range": [
+        93,
+        96
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "93-96",
+          "key": "piercing-vulnerability"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.Bpd5fPiq4nqFNWs0"
+    },
+    {
+      "_id": "CGjpsl50tW5sJzm7",
+      "type": "text",
+      "name": "Restoration (d6)",
+      "description": "Roll 1d6: you regain 2d10 HP, an ally regains 2d10 HP, you regain a spell slot, an ally regains a spell slot, you regain all sorcery points, or every row 17-20 oddity affects you at once.",
+      "text": "<strong>Restoration (d6).</strong> Roll 1d6: you regain 2d10 HP, an ally regains 2d10 HP, you regain a spell slot, an ally regains a spell slot, you regain all sorcery points, or every row 17-20 oddity affects you at once.",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        97,
+        100
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "97-00"
+        }
+      },
+      "_key": "!tables.results!NAH5gucx6b7c2Wh5.CGjpsl50tW5sJzm7"
+    }
+  ],
+  "flags": {
+    "wild-surge-effects": {
+      "table": "2024"
+    }
+  },
+  "_key": "!tables!NAH5gucx6b7c2Wh5"
+}

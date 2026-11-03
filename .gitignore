@@ -1,2 +1,5 @@
 module.zip
 *.zip
+node_modules/
+packs/*
+!packs/_source/

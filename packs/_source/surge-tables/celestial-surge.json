@@ -1,0 +1,437 @@
+{
+  "_id": "B1oRcs1TPTPjvQZf",
+  "name": "Celestial Surge",
+  "img": "icons/svg/d20-black.svg",
+  "description": "Celestial Surge (homebrew). Enable Celestial Surge in the module settings to get the Apply button on draws.",
+  "formula": "1d20",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "a9y3zMcm0LWN1dmQ",
+      "type": "text",
+      "name": "Celestial Echo",
+      "description": "For the next minute, roll on the Celestial Surge table at the start of each of your turns (ignore this result on those rolls).",
+      "text": "<strong>Celestial Echo.</strong> For the next minute, roll on the Celestial Surge table at the start of each of your turns (ignore this result on those rolls).",
+      "img": "modules/wild-surge-effects/icons/cs-surge-each-turn.svg",
+      "weight": 1,
+      "range": [
+        1,
+        1
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "1",
+          "key": "cs-surge-each-turn"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.a9y3zMcm0LWN1dmQ"
+    },
+    {
+      "_id": "Q5g0NTFQkJENxHmF",
+      "type": "text",
+      "name": "Heretic's Rite",
+      "description": "You or one random ally has disadvantage on the next saving throw or ability check.",
+      "text": "<strong>Heretic's Rite.</strong> You or one random ally has disadvantage on the next saving throw or ability check.",
+      "img": "modules/wild-surge-effects/icons/cs-heretics-rite.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "2",
+          "key": "cs-heretics-rite"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.Q5g0NTFQkJENxHmF"
+    },
+    {
+      "_id": "wqXcAdZRZZ7548I7",
+      "type": "text",
+      "name": "Accustomed to Magic",
+      "description": "You or one random ally gains resistance to one type of magical damage of your choice for 3 turns.",
+      "text": "<strong>Accustomed to Magic.</strong> You or one random ally gains resistance to one type of magical damage of your choice for 3 turns.",
+      "img": "modules/wild-surge-effects/icons/cs-magic-resistance.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "3",
+          "key": "cs-magic-resistance"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.wqXcAdZRZZ7548I7"
+    },
+    {
+      "_id": "ldeNWIoEiMbfquXU",
+      "type": "text",
+      "name": "Nature Turns Its Back",
+      "description": "One random creature can't regain hit points until the end of your next turn.",
+      "text": "<strong>Nature Turns Its Back.</strong> One random creature can't regain hit points until the end of your next turn.",
+      "img": "modules/wild-surge-effects/icons/cs-no-healing.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "4",
+          "key": "cs-no-healing"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.ldeNWIoEiMbfquXU"
+    },
+    {
+      "_id": "btlIX2pB3glGXXao",
+      "type": "text",
+      "name": "Accustomed to Mundane Attacks",
+      "description": "You or one random ally gains resistance to one type of physical damage of your choice for 3 turns.",
+      "text": "<strong>Accustomed to Mundane Attacks.</strong> You or one random ally gains resistance to one type of physical damage of your choice for 3 turns.",
+      "img": "modules/wild-surge-effects/icons/cs-physical-resistance.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "5",
+          "key": "cs-physical-resistance"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.btlIX2pB3glGXXao"
+    },
+    {
+      "_id": "0kHV7nIOhEWgJT78",
+      "type": "text",
+      "name": "Withered Right Hand",
+      "description": "One random creature can't use its right hand until the end of your next turn.",
+      "text": "<strong>Withered Right Hand.</strong> One random creature can't use its right hand until the end of your next turn.",
+      "img": "modules/wild-surge-effects/icons/cs-no-right-hand.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "6",
+          "key": "cs-no-right-hand"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.0kHV7nIOhEWgJT78"
+    },
+    {
+      "_id": "wl0gRctwnx679cRU",
+      "type": "text",
+      "name": "Seventh Day",
+      "description": "One random ally gets the benefits of a short rest (they can spend at most your proficiency bonus in Hit Dice).",
+      "text": "<strong>Seventh Day.</strong> One random ally gets the benefits of a short rest (they can spend at most your proficiency bonus in Hit Dice).",
+      "img": "modules/wild-surge-effects/icons/cs-short-rest.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "7",
+          "key": "cs-short-rest"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.wl0gRctwnx679cRU"
+    },
+    {
+      "_id": "t8gKREzpLc4dKkBN",
+      "type": "text",
+      "name": "Prayer Time",
+      "description": "You pray for 1 turn: no actions, bonus actions or reactions. You can still be targeted and damaged.",
+      "text": "<strong>Prayer Time.</strong> You pray for 1 turn: no actions, bonus actions or reactions. You can still be targeted and damaged.",
+      "img": "modules/wild-surge-effects/icons/cs-prayer.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "8",
+          "key": "cs-prayer"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.t8gKREzpLc4dKkBN"
+    },
+    {
+      "_id": "KUL0wtRPmO4lmTY1",
+      "type": "text",
+      "name": "What Doesn't Kill You",
+      "description": "For 3 turns, one random ally gains advantage on their next attack roll each time they take damage.",
+      "text": "<strong>What Doesn't Kill You.</strong> For 3 turns, one random ally gains advantage on their next attack roll each time they take damage.",
+      "img": "modules/wild-surge-effects/icons/cs-stronger.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "9",
+          "key": "cs-stronger"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.KUL0wtRPmO4lmTY1"
+    },
+    {
+      "_id": "hKzS2wrGlNzaTIgD",
+      "type": "text",
+      "name": "Burn the Non-believers",
+      "description": "You are covered in sacred flames. Each creature within 20 ft makes a CON save against your spell save DC, taking 4d8 fire + 4d8 radiant damage on a failure or half on a success.",
+      "text": "<strong>Burn the Non-believers.</strong> You are covered in sacred flames. Each creature within 20 ft makes a CON save against your spell save DC, taking 4d8 fire + 4d8 radiant damage on a failure or half on a success.",
+      "img": "modules/wild-surge-effects/icons/cs-sacred-flames.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "10",
+          "key": "cs-sacred-flames"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.hKzS2wrGlNzaTIgD"
+    },
+    {
+      "_id": "z0dwYWDNx7kRiPRU",
+      "type": "text",
+      "name": "Holy Weapon",
+      "description": "One random ally's weapon shines with holy light, dealing an extra 1d8 radiant damage for 2 of their turns.",
+      "text": "<strong>Holy Weapon.</strong> One random ally's weapon shines with holy light, dealing an extra 1d8 radiant damage for 2 of their turns.",
+      "img": "modules/wild-surge-effects/icons/cs-holy-weapon.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "11",
+          "key": "cs-holy-weapon"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.z0dwYWDNx7kRiPRU"
+    },
+    {
+      "_id": "JmjzuZeI4ESzqmKM",
+      "type": "text",
+      "name": "Bow Before Me",
+      "description": "One random ally is knocked prone and can't stand up until the end of their next turn (they must crawl to move).",
+      "text": "<strong>Bow Before Me.</strong> One random ally is knocked prone and can't stand up until the end of their next turn (they must crawl to move).",
+      "img": "modules/wild-surge-effects/icons/cs-bow-before-me.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "12",
+          "key": "cs-bow-before-me"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.JmjzuZeI4ESzqmKM"
+    },
+    {
+      "_id": "GDOzEilsYL6WTkQw",
+      "type": "text",
+      "name": "Gracious Lord",
+      "description": "For the next day you can cast the Spare the Dying cantrip.",
+      "text": "<strong>Gracious Lord.</strong> For the next day you can cast the Spare the Dying cantrip.",
+      "img": "modules/wild-surge-effects/icons/cs-spare-the-dying.svg",
+      "weight": 1,
+      "range": [
+        13,
+        13
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "13",
+          "key": "cs-spare-the-dying"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.GDOzEilsYL6WTkQw"
+    },
+    {
+      "_id": "elNpmHtkFsPFnD2s",
+      "type": "text",
+      "name": "Mouths That Cannot Speak",
+      "description": "Until the end of your next round, a random creature is blinded, deafened and can't speak. Blindsight that relies on smell doesn't help.",
+      "text": "<strong>Mouths That Cannot Speak.</strong> Until the end of your next round, a random creature is blinded, deafened and can't speak. Blindsight that relies on smell doesn't help.",
+      "img": "modules/wild-surge-effects/icons/cs-senseless.svg",
+      "weight": 1,
+      "range": [
+        14,
+        14
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "14",
+          "key": "cs-senseless"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.elNpmHtkFsPFnD2s"
+    },
+    {
+      "_id": "6a52Ofo4xMfsxino",
+      "type": "text",
+      "name": "Eye for an Eye",
+      "description": "For the next 3 turns, when you or an ally within 30 ft takes damage, you can use your reaction to cast a cantrip at the source of the damage.",
+      "text": "<strong>Eye for an Eye.</strong> For the next 3 turns, when you or an ally within 30 ft takes damage, you can use your reaction to cast a cantrip at the source of the damage.",
+      "img": "modules/wild-surge-effects/icons/cs-eye-for-eye.svg",
+      "weight": 1,
+      "range": [
+        15,
+        15
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "15",
+          "key": "cs-eye-for-eye"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.6a52Ofo4xMfsxino"
+    },
+    {
+      "_id": "ueFYcHswimr1TaIV",
+      "type": "text",
+      "name": "He Sent His Word",
+      "description": "All allies within 30 ft regain 8d4+8 hit points.",
+      "text": "<strong>He Sent His Word.</strong> All allies within 30 ft regain 8d4+8 hit points.",
+      "img": "modules/wild-surge-effects/icons/cs-mass-heal.svg",
+      "weight": 1,
+      "range": [
+        16,
+        16
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "16",
+          "key": "cs-mass-heal"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.ueFYcHswimr1TaIV"
+    },
+    {
+      "_id": "F74In5RygJex33MM",
+      "type": "text",
+      "name": "Do Not Repay Evil",
+      "description": "For the next minute you can't harm any creature. If you do, you skip your next turn and the effect ends.",
+      "text": "<strong>Do Not Repay Evil.</strong> For the next minute you can't harm any creature. If you do, you skip your next turn and the effect ends.",
+      "img": "modules/wild-surge-effects/icons/cs-pacifism.svg",
+      "weight": 1,
+      "range": [
+        17,
+        17
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "17",
+          "key": "cs-pacifism"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.F74In5RygJex33MM"
+    },
+    {
+      "_id": "a8zMiVGgs1FoeTZE",
+      "type": "text",
+      "name": "Was Dead and Is Alive",
+      "description": "For the next 10 minutes, if you or an ally within 40 ft is knocked unconscious, they regain consciousness at the start of their turn with 10 temporary hit points.",
+      "text": "<strong>Was Dead and Is Alive.</strong> For the next 10 minutes, if you or an ally within 40 ft is knocked unconscious, they regain consciousness at the start of their turn with 10 temporary hit points.",
+      "img": "modules/wild-surge-effects/icons/cs-prodigal.svg",
+      "weight": 1,
+      "range": [
+        18,
+        18
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "18",
+          "key": "cs-prodigal"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.a8zMiVGgs1FoeTZE"
+    },
+    {
+      "_id": "4bvOYnWJstZPyP08",
+      "type": "text",
+      "name": "Show Nothing but Faith",
+      "description": "Halve the AC of one random ally for 1 turn.",
+      "text": "<strong>Show Nothing but Faith.</strong> Halve the AC of one random ally for 1 turn.",
+      "img": "modules/wild-surge-effects/icons/cs-strip-bare.svg",
+      "weight": 1,
+      "range": [
+        19,
+        19
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "19",
+          "key": "cs-strip-bare"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.4bvOYnWJstZPyP08"
+    },
+    {
+      "_id": "dwF8fdAAd35S2m1r",
+      "type": "text",
+      "name": "Resist the Devil",
+      "description": "For the next minute, you or one random ally has resistance to being frightened. If they are already frightened, that ends.",
+      "text": "<strong>Resist the Devil.</strong> For the next minute, you or one random ally has resistance to being frightened. If they are already frightened, that ends.",
+      "img": "modules/wild-surge-effects/icons/cs-resist-devil.svg",
+      "weight": 1,
+      "range": [
+        20,
+        20
+      ],
+      "drawn": false,
+      "flags": {
+        "wild-surge-effects": {
+          "row": "20",
+          "key": "cs-resist-devil"
+        }
+      },
+      "_key": "!tables.results!B1oRcs1TPTPjvQZf.dwF8fdAAd35S2m1r"
+    }
+  ],
+  "flags": {
+    "wild-surge-effects": {
+      "table": "celestial"
+    }
+  },
+  "_key": "!tables!B1oRcs1TPTPjvQZf"
+}
