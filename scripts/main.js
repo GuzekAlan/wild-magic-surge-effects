@@ -50,6 +50,25 @@ Hooks.once("init", () => {
     choices: { world: "Use the world setting", "2014": "2014 (Player's Handbook 2014)", "2024": "2024 (Player's Handbook 2024)" },
     onChange: () => refreshPanel()
   });
+  game.settings.register(MOD, "wildTableName", {
+    name: "Wild Magic Surge table name",
+    hint: "Name of the world roll table used for Wild Magic Surge (exact match, not case-sensitive). Draws from it get an Apply button in chat, and its size picks 2014 vs 2024 on Auto.",
+    scope: "world", config: true, type: String, default: "Wild Magic Surge",
+    onChange: () => refreshPanel()
+  });
+  game.settings.register(MOD, "celestialEnabled", {
+    name: "Enable Celestial Surge",
+    hint: "Adds the homebrew Celestial Surge (d20) table: its results in the surge panel and an Apply button on its roll table draws.",
+    scope: "world", config: true, type: Boolean, default: false,
+    onChange: () => refreshPanel()
+  });
+  game.settings.register(MOD, "celestialTableName", {
+    name: "Celestial Surge table name",
+    hint: "Name of the world roll table used for Celestial Surge (exact match, not case-sensitive).",
+    scope: "world", config: true, type: String, default: "Celestial Surge"
+  });
+  game.settings.register(MOD, "panelMode", { scope: "client", config: false, type: String, default: "wild",
+    onChange: () => refreshPanel() });
   game.settings.register(MOD, "showInHud", {
     name: "Show surge effects in the Token HUD",
     hint: "Also list every lasting surge effect as a status icon in the token HUD. Off by default: use the Wild Surge button on the character sheet (or the token toolbar) and manage active effects under the sheet's Effects tab.",
@@ -87,7 +106,7 @@ function effectData(e) {
   return {
     name: `Surge: ${e.name}`,
     img: iconPath(e),
-    description: `<p><strong>Wild Magic Surge.</strong> ${e.text}</p><p><em>${e.mechanics}</em></p>`,
+    description: `<p><strong>${e.source ?? "Wild Magic Surge"}.</strong> ${e.text}</p><p><em>${e.mechanics}</em></p>`,
     statuses: [statusId(e), ...(e.statuses ?? [])],
     ...(isV14() ? { system: { changes } } : { changes }),
     duration: toDuration(e.duration),
@@ -109,6 +128,7 @@ Hooks.once("setup", () => {
 
 Hooks.once("ready", () => {
   migrateConditionEffects();
+  game.socket?.on(SOCKET, onSocket);
   game.modules.get(MOD).api = { open: openPanel, applyByRoll, applyEffect: applyEffect, edition, effects: EFFECTS, tables: TABLES };
 });
 
@@ -138,8 +158,12 @@ async function migrateConditionEffects() {
 }
 
 /** The surge table edition in use: "2014" or "2024". */
-const SURGE_TABLE_NAME = "Wild Magic Surge";
-const isSurgeTable = table => table?.name?.trim().toLowerCase() === SURGE_TABLE_NAME.toLowerCase();
+const sameName = (table, name) => !!name && table?.name?.trim().toLowerCase() === name.trim().toLowerCase();
+const wildTableName = () => game.settings.get(MOD, "wildTableName") || "Wild Magic Surge";
+const celestialTableName = () => game.settings.get(MOD, "celestialTableName") || "Celestial Surge";
+const celestialEnabled = () => game.settings.get(MOD, "celestialEnabled");
+const isSurgeTable = table => sameName(table, wildTableName());
+const isCelestialTable = table => celestialEnabled() && sameName(table, celestialTableName());
 
 function edition() {
   const mine = game.settings.get(MOD, "myTable");
@@ -315,7 +339,7 @@ async function surgeCard(actor, e, extra, title) {
   const spell = await spellLink(e.spell);
   const content = `<div class="wse-card">
     <header><img src="${iconPath(e)}" width="36" height="36"/><h3>${title ?? e.name}</h3></header>
-    <p class="wse-range">Wild Magic Surge</p>
+    <p class="wse-range">${e.source ?? "Wild Magic Surge"}</p>
     <p>${e.text}</p>
     ${spell ? `<p>Spell: ${spell}</p>` : ""}
     <p class="wse-mech">${e.mechanics}</p>
@@ -324,6 +348,90 @@ async function surgeCard(actor, e, extra, title) {
   return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content });
 }
 
+/* ---- GM relay: players can't edit actors they don't own, so the GM's client does it. ---- */
+
+const SOCKET = `module.${MOD}`;
+
+async function onSocket(msg) {
+  if (!isActiveGM() || !msg?.op) return;
+  const actor = await fromUuid(msg.uuid);
+  if (!actor) return;
+  if (msg.op === "create") await actor.createEmbeddedDocuments("ActiveEffect", [msg.data]);
+  else if (msg.op === "delete") await actor.effects.get(msg.effectId)?.delete();
+  else if (msg.op === "enable") await actor.effects.get(msg.effectId)?.update({ disabled: false });
+  else if (msg.op === "heal") await heal(actor, msg.amount);
+  else if (msg.op === "removeStatus") await removeStatus(actor, msg.status);
+  else if (msg.op === "shortRest") await actor.shortRest?.();
+}
+
+function viaGM(op, actor, extra = {}) {
+  if (!game.users.activeGM) {
+    ui.notifications.warn(`You don't own ${actor.name} and no GM is connected to apply it for you.`);
+    return false;
+  }
+  game.socket.emit(SOCKET, { op, uuid: actor.uuid, ...extra });
+  return true;
+}
+
+async function removeStatus(actor, status) {
+  const ids = actor.effects.filter(ae => ae.statuses?.has?.(status)).map(ae => ae.id);
+  if (ids.length) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
+}
+
+/** Tokens a "random ally/creature" result goes to: your targets (T), else your selected tokens. */
+function chosenActors() {
+  const targets = [...game.user.targets].map(t => t.actor).filter(Boolean);
+  if (targets.length) return targets;
+  return (canvas?.tokens?.controlled ?? []).map(t => t.actor).filter(Boolean);
+}
+
+async function chooseOption(choice) {
+  const labelOf = t => game.i18n.localize(CONFIG.DND5E?.damageTypes?.[t]?.label ?? t);
+  const options = choice.options.map(t => `<option value="${t}">${labelOf(t)}</option>`).join("");
+  const { DialogV2 } = foundry.applications.api;
+  return DialogV2.wait({
+    window: { title: choice.label },
+    content: `<div class="form-group"><label>Damage type</label><select name="choice">${options}</select></div>`,
+    buttons: [{
+      action: "ok", label: "Apply", default: true,
+      callback: (event, button) => button.form.elements.choice.value
+    }],
+    rejectClose: false
+  });
+}
+
+/* ---- Instant results that need the module's helpers ---- */
+
+const RUNNERS = {
+  async sacredFlames(actor) {
+    const dc = actor.system.attributes?.spell?.dc ?? actor.system.attributes?.spelldc ?? "your spell save";
+    const roll = await new Roll("4d8[fire] + 4d8[radiant]").evaluate();
+    await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }),
+      flavor: `Celestial Surge: Burn the Non-believers. Creatures within 20 ft make a DC ${dc} Constitution save (half damage on a success).` });
+    return null;
+  },
+  async massHeal(actor) {
+    const allies = chosenActors();
+    if (!allies.length) return "Target (T) or select the allies within 30 ft, then resolve again.";
+    const roll = await new Roll("8d4 + 8").evaluate();
+    await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: "Celestial Surge: allies within 30 ft regain 8d4+8 HP." });
+    for (const a of allies) {
+      if (a.isOwner) await heal(a, roll.total);
+      else viaGM("heal", a, { amount: roll.total });
+    }
+    return `Healed ${allies.map(a => a.name).join(", ")} for up to ${roll.total} HP.`;
+  },
+  async shortRest() {
+    const allies = chosenActors();
+    if (!allies.length) return "Target (T) or select the ally, then resolve again.";
+    for (const a of allies) {
+      if (a.isOwner) await a.shortRest?.();
+      else viaGM("shortRest", a);
+    }
+    return `Short rest for ${allies.map(a => a.name).join(", ")} (max Hit Dice = your proficiency bonus).`;
+  }
+};
+
 /** Apply (or toggle) a single effect from the pool on an actor. */
 async function applyEffect(actor, keyOrEffect, { toggle = false } = {}) {
   const e = typeof keyOrEffect === "string" ? EFFECTS[keyOrEffect] : keyOrEffect;
@@ -331,26 +439,65 @@ async function applyEffect(actor, keyOrEffect, { toggle = false } = {}) {
   if (!actor) return ui.notifications.warn("Select a token (or assign a character) first.");
 
   if (e.kind === "instant") {
-    const result = e.run ? await e.run(actor) : null;
+    const run = typeof e.run === "string" ? RUNNERS[e.run] : e.run;
+    const result = run ? await run(actor) : null;
     if (game.settings.get(MOD, "chatCards") || result) await surgeCard(actor, e, result);
     return;
   }
 
+  // Who gets it
   const targets = [...game.user.targets].map(t => t.actor).filter(Boolean);
-  const recipients = [];
-  if (e.targets === "targets") recipients.push(...(targets.length ? targets : [actor]));
-  else if (e.targets === "self+targets") recipients.push(actor, ...targets.filter(a => a !== actor));
-  else recipients.push(actor);
+  let recipients;
+  if (e.random) {
+    // "One random ally/creature": never applied automatically, you choose the token.
+    recipients = chosenActors();
+    if (!recipients.length) {
+      return ui.notifications.warn(`${e.name} hits a random creature: target (T) or select its token, then apply again.`);
+    }
+  }
+  else if (e.targets === "targets") recipients = targets.length ? targets : [actor];
+  else if (e.targets === "self+targets") recipients = [actor, ...targets.filter(a => a !== actor)];
+  else recipients = [actor];
+
+  // Build the data once (so a damage-type choice is asked only once)
+  let data = null;
+  const build = async () => {
+    if (data) return data;
+    data = effectData(e);
+    if (e.choose) {
+      const value = await chooseOption(e.choose);
+      if (!value) return null;
+      const extra = e.choose.apply(value);
+      if (extra.name) data.name = `Surge: ${extra.name}`;
+      const changes = toChanges(extra.changes ?? []);
+      if (isV14()) data.system.changes.push(...changes);
+      else data.changes.push(...changes);
+    }
+    return data;
+  };
 
   for (const a of recipients) {
-    if (!a.isOwner) {
-      ui.notifications.warn(`You don't have permission to modify ${a.name}. Ask the GM to apply ${e.name}.`);
+    const existing = a.effects.find(ae => ae.getFlag(MOD, "key") === e.key);
+    if (existing && toggle) {
+      if (a.isOwner) await existing.delete();
+      else viaGM("delete", a, { effectId: existing.id });
       continue;
     }
-    const existing = a.effects.find(ae => ae.getFlag(MOD, "key") === e.key);
-    if (existing && toggle) await existing.delete();
-    else if (existing?.disabled) await existing.update({ disabled: false });
-    else if (!existing) await a.createEmbeddedDocuments("ActiveEffect", [effectData(e)]);
+    if (existing) {
+      if (existing.disabled) {
+        if (a.isOwner) await existing.update({ disabled: false });
+        else viaGM("enable", a, { effectId: existing.id });
+      }
+      continue;
+    }
+    const d = await build();
+    if (!d) return;
+    for (const status of e.removeStatuses ?? []) {
+      if (a.isOwner) await removeStatus(a, status);
+      else viaGM("removeStatus", a, { status });
+    }
+    if (a.isOwner) await a.createEmbeddedDocuments("ActiveEffect", [d]);
+    else viaGM("create", a, { data: d });
   }
 }
 
@@ -376,14 +523,21 @@ async function applyByRoll(actor, total, ed = edition()) {
 
 async function rollAndApply(actor) {
   if (!actor) return ui.notifications.warn("Select a token (or assign a character) first.");
-  const ed = edition();
-  const roll = await new Roll("1d100").evaluate();
+  const ed = panelTable();
+  const celestial = ed === "celestial";
+  const roll = await new Roll(celestial ? "1d20" : "1d100").evaluate();
   const row = findRow(ed, roll.total);
-  await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: `Wild Magic Surge (${ed}): ${rangeLabel(row)} ${rowName(row)}` });
+  const title = celestial ? celestialTableName() : `${wildTableName()} (${ed})`;
+  await roll.toMessage({ speaker: ChatMessage.getSpeaker({ actor }), flavor: `${title}: ${rangeLabel(row)} ${rowName(row)}` });
   await applyRow(actor, row);
 }
 
 const rowName = row => (row.key ? EFFECTS[row.key].name : row.name);
+
+/** Table shown in the panel: "celestial", or the Wild Magic edition. */
+function panelTable() {
+  return (game.settings.get(MOD, "panelMode") === "celestial" && celestialEnabled()) ? "celestial" : edition();
+}
 
 /* -------------------------------------------- */
 /*  Chat button on Wild Magic table draws         */
@@ -404,20 +558,22 @@ async function injectChatButton(message, html) {
   if (!message.getFlag?.("core", "RollTable") || html.querySelector(".wse-apply")) return;
   const total = message.rolls?.[0]?.total;
   if (!total) return;
-  // Only the table named exactly "Wild Magic Surge". If the table can't be looked up
+  // Only the tables named in the settings (exact name). If the table can't be looked up
   // (e.g. it was deleted), fall back to the message mentioning that exact name.
   const table = await tableForMessage(message);
-  if (table ? !isSurgeTable(table) : !`${message.flavor ?? ""} ${message.content ?? ""}`.includes(SURGE_TABLE_NAME)) return;
-
-  // Row numbers must match the table that was actually drawn.
-  const ed = editionOfTable(table) ?? edition();
+  const text = `${message.flavor ?? ""} ${message.content ?? ""}`;
+  let ed;
+  if (table ? isCelestialTable(table) : (celestialEnabled() && text.includes(celestialTableName()))) ed = "celestial";
+  else if (table ? isSurgeTable(table) : text.includes(wildTableName())) ed = editionOfTable(table) ?? edition();
+  else return;
   const row = findRow(ed, total);
   if (!row || html.querySelector(".wse-apply")) return;
 
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "wse-apply";
-  btn.innerHTML = `<i class="fas fa-hat-wizard"></i> Apply ${rangeLabel(row)} ${rowName(row)}`;
+  const random = row.key && EFFECTS[row.key].random;
+  btn.innerHTML = `<i class="fas fa-hat-wizard"></i> Apply ${rangeLabel(row)} ${rowName(row)}${random ? " to targeted/selected token" : ""}`;
   btn.addEventListener("click", ev => {
     ev.preventDefault();
     applyRow(selectedActor() ?? ChatMessage.getSpeakerActor(message.speaker), row);
@@ -463,7 +619,7 @@ class SurgePanel extends ApplicationV2 {
 
   async _renderHTML() {
     const actor = panelActor();
-    const ed = edition();
+    const ed = panelTable();
     const active = new Set();
     for (const ae of actor?.effects ?? []) { const e = effectOf(ae); if (e && !ae.disabled) active.add(e.key); }
 
@@ -477,7 +633,7 @@ class SurgePanel extends ApplicationV2 {
       return `<li class="wse-row ${sub ? "sub" : ""} ${active.has(e.key) ? "active" : ""}" data-search="${search}">
         <span class="wse-r">${range}</span>
         <img src="${iconPath(e)}" alt=""/>
-        <div class="wse-body"><strong>${e.name}</strong><span>${e.mechanics}</span></div>
+        <div class="wse-body"><strong>${e.random ? "⟶ " : ""}${e.name}</strong><span>${e.mechanics}</span></div>
         ${button(e)}
       </li>`;
     };
@@ -497,15 +653,17 @@ class SurgePanel extends ApplicationV2 {
 
     return `<div class="wse-top">
         <div class="wse-actor">${actor ? `<img src="${actor.img}"/><span>${actor.name}</span>` : "<em>Select a token</em>"}</div>
-        <button type="button" data-action="roll" ${actor ? "" : "disabled"}><i class="fas fa-dice-d20"></i> Roll d100 &amp; apply</button>
+        <button type="button" data-action="roll" ${actor ? "" : "disabled"}><i class="fas fa-dice-d20"></i> Roll ${ed === "celestial" ? "d20" : "d100"} &amp; apply</button>
       </div>
       <input type="search" class="wse-filter" placeholder="Filter results..." value="${this.filter}"/>
       <label class="wse-table">Surge table:
         <select class="wse-edition">
-          <option value="2014" ${ed === "2014" ? "selected" : ""}>2014 (PHB 2014)</option>
-          <option value="2024" ${ed === "2024" ? "selected" : ""}>2024 (PHB 2024)</option>
+          <option value="2014" ${ed === "2014" ? "selected" : ""}>${wildTableName()} (2014)</option>
+          <option value="2024" ${ed === "2024" ? "selected" : ""}>${wildTableName()} (2024)</option>
+          ${celestialEnabled() ? `<option value="celestial" ${ed === "celestial" ? "selected" : ""}>${celestialTableName()}</option>` : ""}
         </select>
       </label>
+      ${ed === "celestial" ? `<p class="wse-hint">Results marked ⟶ hit a random creature: target (T) or select its token first.</p>` : ""}
       <ul class="wse-list">${rows}</ul>`;
   }
 
@@ -514,8 +672,12 @@ class SurgePanel extends ApplicationV2 {
   }
 
   _onRender() {
-    this.element.querySelector(".wse-edition")?.addEventListener("change", ev => {
-      game.settings.set(MOD, "myTable", ev.target.value); // client setting: works for players too
+    this.element.querySelector(".wse-edition")?.addEventListener("change", async ev => {
+      // client settings: work for players too
+      const value = ev.target.value;
+      if (value === "celestial") return game.settings.set(MOD, "panelMode", "celestial");
+      await game.settings.set(MOD, "myTable", value);
+      await game.settings.set(MOD, "panelMode", "wild");
     });
     const input = this.element.querySelector(".wse-filter");
     const apply = () => {
@@ -536,7 +698,7 @@ class SurgePanel extends ApplicationV2 {
   }
 
   static async onSubroll(event, target) {
-    await applyRow(panelActor(), TABLES[edition()][Number(target.dataset.index)]);
+    await applyRow(panelActor(), TABLES[panelTable()][Number(target.dataset.index)]);
   }
 
   static async onRoll() {

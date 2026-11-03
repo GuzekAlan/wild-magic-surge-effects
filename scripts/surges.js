@@ -1,5 +1,5 @@
 /**
- * Wild Magic Surge effects for the 2014 and 2024 surge tables.
+ * Wild Magic Surge effects for the 2014 and 2024 surge tables (plus the optional Celestial Surge table, see celestial.js).
  * Descriptions are short paraphrases for reference; your rulebook has the exact wording.
  *
  * EFFECTS is a pool of outcomes shared by both tables.
@@ -7,6 +7,8 @@
  *   kind "instant": resolved once (rolls, healing, slot recovery) and reported in chat.
  * TABLES maps d100 ranges to an effect key, or to a sub-roll ("Roll 1dX...") over effect keys.
  */
+
+import { CELESTIAL_EFFECTS, CELESTIAL_TABLE } from "./celestial.js";
 
 const ADD = 2;       // CONST.ACTIVE_EFFECT_MODES.ADD
 const UPGRADE = 4;   // CONST.ACTIVE_EFFECT_MODES.UPGRADE
@@ -286,7 +288,7 @@ const E = [
     run: async actor => regainSorceryPoints(actor) }
 ];
 
-export const EFFECTS = Object.fromEntries(E.map(e => [e.key, e]));
+export const EFFECTS = Object.fromEntries([...E, ...CELESTIAL_EFFECTS].map(e => [e.key, e]));
 
 /* -------------------------------------------- */
 /*  Tables                                       */
@@ -298,6 +300,7 @@ const quads = rows => rows.map((row, i) => ({ min: i * 4 + 1, max: i * 4 + 4, ..
 const COSMETIC_2024 = ["ethereal-music", "size-increase", "feather-beard", "shouting", "butterflies", "third-eye", "bubbles-2024", "blue-skin-24h"];
 
 export const TABLES = {
+  celestial: CELESTIAL_TABLE,
   "2014": pairs([
     "surge-each-turn", "see-invisible", "modron", "fireball", "magic-missile", "height-change", "confusion",
     "regeneration", "feather-beard", "grease", "save-disadvantage", "blue-skin", "third-eye", "quickened-casting",
@@ -343,13 +346,14 @@ export const TABLES = {
 
 /** Find the table row for a d100 total. */
 export function findRow(edition, total) {
-  const n = ((Number(total) - 1) % 100 + 100) % 100 + 1;
+  const size = edition === "celestial" ? 20 : 100;
+  const n = ((Number(total) - 1) % size + size) % size + 1;
   return TABLES[edition].find(r => n >= r.min && n <= r.max);
 }
 
 export function rangeLabel(row) {
   const f = n => (n === 100 ? "00" : String(n).padStart(2, "0"));
-  return `${f(row.min)}-${f(row.max)}`;
+  return row.min === row.max ? String(row.min) : `${f(row.min)}-${f(row.max)}`;
 }
 
 /* -------------------------------------------- */
